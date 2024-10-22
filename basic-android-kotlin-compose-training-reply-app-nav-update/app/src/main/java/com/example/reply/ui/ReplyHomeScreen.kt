@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.reply.ui
 
 import androidx.compose.animation.AnimatedVisibility
@@ -57,6 +42,8 @@ import com.example.reply.data.Email
 import com.example.reply.data.MailboxType
 import com.example.reply.data.local.LocalAccountsDataProvider
 import com.example.reply.ui.utils.ReplyNavigationType
+import android.app.Activity
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun ReplyHomeScreen(
@@ -139,14 +126,46 @@ fun ReplyHomeScreen(
 }
 
 @Composable
-private fun ReplyAppContent(
-    navigationType: ReplyNavigationType,
-    replyUiState: ReplyUiState,
-    onTabPressed: ((MailboxType) -> Unit),
-    onEmailCardPressed: (Email) -> Unit,
-    navigationItemContentList: List<NavigationItemContent>,
-    modifier: Modifier = Modifier,
-) {
+private fun  ReplyAppContent(
+    navigationType = navigationType,
+    contentType = contentType,
+    replyUiState = replyUiState,
+    onTabPressed = onTabPressed,
+    onEmailCardPressed = onEmailCardPressed,
+    navigationItemContentList = navigationItemContentList,
+    modifier = modifier
+)
+}
+} else {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.inverseOnSurface)
+    ) {
+        if (contentType == ReplyContentType.LIST_AND_DETAIL) {
+            ReplyListAndDetailContent(
+                replyUiState = replyUiState,
+                onEmailCardPressed = onEmailCardPressed,
+                modifier = Modifier.weight(1f)
+            )
+        } else {
+            ReplyListOnlyContent(
+                replyUiState = replyUiState,
+                onEmailCardPressed = onEmailCardPressed,
+                modifier = Modifier.weight(1f)
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.email_list_only_horizontal_padding)
+                    )
+            )
+        }
+        AnimatedVisibility(visible = navigationType == ReplyNavigationType.BOTTOM_NAVIGATION) {
+            ReplyBottomNavigationBar(
+                currentTab = replyUiState.currentMailbox,
+                onTabPressed = onTabPressed,
+                navigationItemContentList = navigationItemContentList
+            )
+        }
+    }
     Box(modifier = modifier)
         
     {
@@ -294,4 +313,15 @@ private data class NavigationItemContent(
     val mailboxType: MailboxType,
     val icon: ImageVector,
     val text: String
+)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReplyHomeScreen(
+    navigationType: ReplyNavigationType,
+    contentType: ReplyContentType,
+    replyUiState: ReplyUiState,
+    onTabPressed: (MailboxType) -> Unit,
+    onEmailCardPressed: (Email) -> Unit,
+    onDetailScreenBackPressed: () -> Unit,
+    modifier: Modifier = Modifier
 )
